@@ -32,12 +32,12 @@ bool bvh_node::hit(const ray &r, float tmin, float tmax, hit_record &rec) const 
         hit_record left_rec,right_rec;
         bool hit_left = left->hit(r,tmin,tmax,left_rec);
         bool hit_right = right->hit(r,tmin,tmax,right_rec);
-        if(hit_left && hit_right)           // 击中重叠部分
+        if(hit_left && hit_right)           // hit overlapped area
         {
             if(left_rec.t<right_rec.t)
-                rec = left_rec;             // 击中左子树
+                rec = left_rec;             // hit left subtree
             else
-                rec = right_rec;            // 击中右子树
+                rec = right_rec;            // hit right subtree
             return true;
         } else if(hit_left)
         {
@@ -50,7 +50,7 @@ bool bvh_node::hit(const ray &r, float tmin, float tmax, hit_record &rec) const 
         } else
             return false;
     } else
-        return false;                       // 未击中任何物体
+        return false;                       // Did not hit anything
 }
 
 

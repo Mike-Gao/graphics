@@ -16,8 +16,10 @@
 #include "aarect.h"
 #include "constant_medium.h"
 #include "bvh.h"
-
-
+#include <math.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
 #define random(a, b) (rand()%(b-a+1)+a)
 
 using namespace std;
@@ -43,7 +45,7 @@ vec3 color(const ray &r, hitable *world, int depth) {
 }
 
 
-// Final Scene Construction (From Peter Shirley's Book)
+// Final Scene Construction
 hitable *final() {
     int nb = 10;
     hitable **list = new hitable*[3000];
@@ -98,6 +100,17 @@ inline vec3 de_nan(const vec3 &c)
     return t;
 }
 
+const int processesCount=8;
+int createProcess(){
+    int id=0;
+    for(int level = log2(processesCount);level>0; level--){
+        if (fork()==0)
+            id+=pow(2,level-1);
+    }
+    printf("Process %d created\n",id);
+    return id;
+}
+
 // Main function. All detail for rendering are implemented in the header.
 // Here are scene configuration as well as camera configuration
 // Credits the author of the book P. Shirley for the scene that tests all features!
@@ -105,10 +118,10 @@ int main() {
 
     string str = "";
     // pixel count (x,y)
-    int nx = 1000;
-    int ny = 1000;
+    int nx = 100;
+    int ny = 100;
     // Sampling Size
-    int ns = 1000;
+    int ns = 100;
     // Camera View
     vec3 lookfrom(228, 278, -800);
     vec3 lookat(278, 278, 0);
@@ -120,12 +133,24 @@ int main() {
     hitable *world = final();
 
     random_device rd;
+    ofstream mainFile("img.ppm");
+    mainFile << "P3\n" << nx << " " << ny << "\n255\n";
+    mainFile.close();
+
+    int chunk=createProcess();
+    int begin=ny/processesCount*(chunk+1);
+    int end=ny/processesCount*chunk;
+    if (chunk==processesCount-1) begin=ny;
+
+    printf("Worker %d: calculating row %d-row%d\n",chunk,begin,end);
+
+    char fileName [10];
+    sprintf(fileName,"imgChunk%d",chunk);
     //Create the output file and then write to it.
-    ofstream OutFile("Test.ppm"); 
+    ofstream OutFile(fileName);
 
-    OutFile << "P3\n" << nx << " " << ny << "\n255\n";
 
-    for (int j = ny - 1; j >= 0; j--) {
+    for (int j = begin - 1; j >= end; j--) {
         str = "";
         for (int i = 0; i < nx; i++) {
             vec3 col(0, 0, 0);
@@ -157,9 +182,10 @@ int main() {
             str += s;
         }
         OutFile << str;
-        cout<< "Progress: " << j <<"/" << ny <<endl;
+        printf("Worker %d: %d/%d\n",chunk,begin-j,begin-end);
     }
-    // Finish writing to file.
-    OutFile.close();
+
+    OutFile.close();            // Finish writing to file.
 
 }
+

@@ -1,13 +1,15 @@
-//
-// vec3.h
-//
-
 #ifndef VEC3_H
 #define VEC3_H
 
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
+#include <stdio.h>
+#include <thread>
+
+// Vec3.h
+// This is a standard implementation of 3D vectors. Adopted from
+//
 
 class vec3  {
 public:
