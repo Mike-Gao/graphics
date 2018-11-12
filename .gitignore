@@ -25,4 +25,7 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
-
+Makefile
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
