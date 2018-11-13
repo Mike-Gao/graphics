@@ -155,7 +155,7 @@ int main() {
     int workerEnd=distributionSliceRange/processesCount*workerID+distributionSliceBegin;
     //if (workerID==processesCount-1) begin=ny;
 
-    printf("\033[s\033[%dAWorker %d: calculating         row %d-row%d\033[u",processesCount-workerID,workerID,workerBegin,workerEnd);
+    printf("\033[s\033[%dAWorker %d:                  row %d-row%d\033[u",processesCount-workerID,workerID,workerBegin,workerEnd);
 
     char fileName [10];
     sprintf(fileName,"imgChunk%d",workerID+distribution_index*processesCount);
