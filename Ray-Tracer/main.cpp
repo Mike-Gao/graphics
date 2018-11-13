@@ -100,7 +100,7 @@ inline vec3 de_nan(const vec3 &c)
     return t;
 }
 
-const int processesCount=8;
+const int processesCount=16;
 int createProcess(){
     int id=0;
     for(int level = log2(processesCount);level>0; level--){
@@ -115,13 +115,13 @@ int createProcess(){
 // Here are scene configuration as well as camera configuration
 // Credits the author of the book P. Shirley for the scene that tests all features!
 int main() {
-
+    srand(0);
     string str = "";
     // pixel count (x,y)
-    int nx = 512;
-    int ny = 512;
+    const int nx = 1024;
+    const int ny = 1024;
     // Sampling Size
-    int ns = 10;
+    const int ns = 5000;
     // Camera View
     vec3 lookfrom(228, 278, -800);
     vec3 lookat(278, 278, 0);
@@ -133,6 +133,15 @@ int main() {
     hitable *world = final();
 
     random_device rd;
+    int distribution_count,distribution_index;
+    printf("Distribution count?: ");
+    scanf("%d",&distribution_count);
+    printf("Distribution index?: ");
+    scanf("%d",&distribution_index);
+
+    int distributionSliceBegin=ny/distribution_count*distribution_index;
+    int distributionSliceRange=ny/distribution_count;
+
     ofstream mainFile("img.ppm");
     mainFile << "P3\n" << nx << " " << ny << "\n255\n";
     mainFile.close();
@@ -140,20 +149,21 @@ int main() {
     for(int i=0;i<processesCount;i++){
         printf("%s","\n");
     }
-    int chunk=createProcess();
-    int begin=ny/processesCount*(chunk+1);
-    int end=ny/processesCount*chunk;
-    if (chunk==processesCount-1) begin=ny;
 
-    printf("\033[s\033[%dAWorker %d: calculating row %d-row%d\033[u",processesCount-chunk,chunk,begin,end);
+    int workerID=createProcess();
+    int workerBegin=distributionSliceRange/processesCount*(workerID+1)+distributionSliceBegin;
+    int workerEnd=distributionSliceRange/processesCount*workerID+distributionSliceBegin;
+    //if (workerID==processesCount-1) begin=ny;
+
+    printf("\033[s\033[%dAWorker %d: calculating         row %d-row%d\033[u",processesCount-workerID,workerID,workerBegin,workerEnd);
 
     char fileName [10];
-    sprintf(fileName,"imgChunk%d",chunk);
+    sprintf(fileName,"imgChunk%d",workerID+distribution_index*processesCount);
     //Create the output file and then write to it.
     ofstream OutFile(fileName);
 
-    for (int j = begin - 1; j >= end; j--) {
-        printf("\033[s\033[%dA\033[KWorker %d: %d/%d\033[u",processesCount-chunk,chunk,begin-j,begin-end);
+    for (int j = workerBegin - 1; j >= workerEnd; j--) {
+        printf("\033[s\033[%dAWorker %d: %d/%d\033[u",processesCount-workerID,workerID,workerBegin-j,workerBegin-workerEnd);
         cout.flush();
         str = "";
         for (int i = 0; i < nx; i++) {
@@ -189,7 +199,7 @@ int main() {
         OutFile << str;
     }
 
-    printf("\033[s\033[%dA\033[KWorker %d: completed\033[u",processesCount-chunk,chunk);
+    printf("\033[s\033[%dA\033[KWorker %d: completed\033[u",processesCount-workerID,workerID);
     OutFile.close();            // Finish writing to file.
 
 }
