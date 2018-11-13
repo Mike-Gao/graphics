@@ -163,12 +163,11 @@ int main() {
     ofstream OutFile(fileName);
 
     for (int j = workerBegin - 1; j >= workerEnd; j--) {
-        printf("\033[s\033[%dAWorker %d: %d/%d\033[u",processesCount-workerID,workerID,workerBegin-j,workerBegin-workerEnd);
-        cout.flush();
         str = "";
         for (int i = 0; i < nx; i++) {
             vec3 col(0, 0, 0);
-
+            printf("\033[s\033[%dAWorker %d: %d/%d\033[u",processesCount-workerID,workerID,(workerBegin-j-1)*nx+i,(workerBegin-workerEnd)*nx);
+            cout.flush();
             for (int s = 0; s < ns; s++) {
                 float u = float(i+drand48())/ float(nx);
                 float v = float(j+drand48())/ float(ny);
