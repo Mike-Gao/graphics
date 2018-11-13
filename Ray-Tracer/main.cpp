@@ -107,7 +107,7 @@ int createProcess(){
         if (fork()==0)
             id+=pow(2,level-1);
     }
-    printf("Process %d created\n",id);
+    printf("\033[s\033[%dAProcess %d created\033[u",processesCount-id,id);
     return id;
 }
 
@@ -118,10 +118,10 @@ int main() {
 
     string str = "";
     // pixel count (x,y)
-    int nx = 100;
-    int ny = 100;
+    int nx = 512;
+    int ny = 512;
     // Sampling Size
-    int ns = 100;
+    int ns = 10;
     // Camera View
     vec3 lookfrom(228, 278, -800);
     vec3 lookat(278, 278, 0);
@@ -136,21 +136,25 @@ int main() {
     ofstream mainFile("img.ppm");
     mainFile << "P3\n" << nx << " " << ny << "\n255\n";
     mainFile.close();
-
+    printf("%s","\033[2J");
+    for(int i=0;i<processesCount;i++){
+        printf("%s","\n");
+    }
     int chunk=createProcess();
     int begin=ny/processesCount*(chunk+1);
     int end=ny/processesCount*chunk;
     if (chunk==processesCount-1) begin=ny;
 
-    printf("Worker %d: calculating row %d-row%d\n",chunk,begin,end);
+    printf("\033[s\033[%dAWorker %d: calculating row %d-row%d\033[u",processesCount-chunk,chunk,begin,end);
 
     char fileName [10];
     sprintf(fileName,"imgChunk%d",chunk);
     //Create the output file and then write to it.
     ofstream OutFile(fileName);
 
-
     for (int j = begin - 1; j >= end; j--) {
+        printf("\033[s\033[%dA\033[KWorker %d: %d/%d\033[u",processesCount-chunk,chunk,begin-j,begin-end);
+        cout.flush();
         str = "";
         for (int i = 0; i < nx; i++) {
             vec3 col(0, 0, 0);
@@ -165,6 +169,7 @@ int main() {
                 temp = de_nan(temp);
                 col += temp;
             }
+
             // average the color
             col /= float(ns);
             col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
@@ -172,7 +177,6 @@ int main() {
             int ir = int(255.99 * col[0]);
             int ig = int(255.99 * col[1]);
             int ib = int(255.99 * col[2]);
-
             // r,g,b value can be larger than 255. When over 255, default to % 255
             ir = ir>255?255:ir;
             ig = ig>255?255:ig;
@@ -181,10 +185,11 @@ int main() {
             string s = to_string(ir) + " " + to_string(ig) + " " + to_string(ib) + "\n";
             str += s;
         }
+
         OutFile << str;
-        printf("Worker %d: %d/%d\n",chunk,begin-j,begin-end);
     }
 
+    printf("\033[s\033[%dA\033[KWorker %d: completed\033[u",processesCount-chunk,chunk);
     OutFile.close();            // Finish writing to file.
 
 }
