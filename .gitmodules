@@ -1,0 +1,3 @@
+[submodule "ray-tracer"]
+	path = ray-tracer
+	url = git@github.com:pkqxdd/ray-tracer-dist.git
