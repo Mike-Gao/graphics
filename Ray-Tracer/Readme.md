@@ -1,4 +1,4 @@
-#Path Tracer, Based on P. Shirley's Ray Tracing Minibooks.
+# Path Tracer, Based on P. Shirley's Ray Tracing Minibooks.
 
 ## Features:
 - [x] Motion Blur
